@@ -20,6 +20,12 @@
 # production
 /build
 
+# AI assistant tooling — local, machine-generated
+.agents/
+.claude/
+.windsurf/
+skills-lock.json
+
 # misc
 .DS_Store
 *.pem
@@ -39,3 +45,5 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+/app/generated/prisma
