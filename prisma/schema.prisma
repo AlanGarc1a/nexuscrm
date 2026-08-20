@@ -1,0 +1,138 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client"
+  output   = "../app/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  AGENT
+  TALENT
+}
+
+model People {
+  id                  Int                  @id @default(autoincrement())
+  firstName           String
+  lastName            String
+  dateOfBirth         DateTime
+  role                Role                 @default(TALENT)
+  peopleOrganizations PeopleOrganization[]
+  peopleProjects      PeopleProject[]
+  peopleTeams         PeopleTeam[]
+  dealPeoples         DealPeople[]
+  relationshipsFrom   Relationship[]       @relation("RelationshipsFrom")
+  relationshipsTo     Relationship[]       @relation("RelationshipsTo")
+  activities          Activity[]
+}
+
+model Organization {
+  id                  Int                  @id @default(autoincrement())
+  name                String
+  createdAt           DateTime             @default(now())
+  peopleOrganizations PeopleOrganization[]
+  teams               Team[]
+}
+
+model Deal {
+  id          Int          @id @default(autoincrement())
+  name        String
+  stage       String
+  createdAt   DateTime     @default(now())
+  dealPeoples DealPeople[]
+  activities  Activity[]
+}
+
+model Project {
+  id             Int             @id @default(autoincrement())
+  name           String
+  status         String
+  createdAt      DateTime        @default(now())
+  peopleProjects PeopleProject[]
+  activities     Activity[]
+}
+
+model Team {
+  id             Int          @id @default(autoincrement())
+  organizationId Int
+  name           String
+  peopleTeams    PeopleTeam[]
+  organization   Organization @relation(fields: [organizationId], references: [id])
+}
+
+model Activity {
+  id              Int      @id @default(autoincrement())
+  peopleId        Int
+  dealId          Int?
+  projectId       Int?
+  type            String
+  body            Json
+  occurredAt      DateTime
+  createdAt       DateTime @default(now())
+  peopleActivity  People   @relation(fields: [peopleId], references: [id])
+  dealActivity    Deal?    @relation(fields: [dealId], references: [id])
+  projectActivity Project? @relation(fields: [projectId], references: [id])
+}
+
+model PeopleOrganization {
+  peopleId       Int
+  organizationId Int
+  startDate      DateTime
+  endDate        DateTime?
+
+  people       People       @relation(fields: [peopleId], references: [id])
+  organization Organization @relation(fields: [organizationId], references: [id])
+
+  @@id([peopleId, organizationId])
+}
+
+model PeopleProject {
+  peopleId  Int
+  projectId Int
+  startDate DateTime
+  endDate   DateTime?
+
+  people  People  @relation(fields: [peopleId], references: [id])
+  project Project @relation(fields: [projectId], references: [id])
+
+  @@id([peopleId, projectId])
+}
+
+model PeopleTeam {
+  peopleId Int
+  teamId   Int
+
+  people People @relation(fields: [peopleId], references: [id])
+  team   Team   @relation(fields: [teamId], references: [id])
+
+  @@id([peopleId, teamId])
+}
+
+model DealPeople {
+  peopleId Int
+  dealId   Int
+
+  people People @relation(fields: [peopleId], references: [id])
+  deal   Deal   @relation(fields: [dealId], references: [id])
+
+  @@id([peopleId, dealId])
+}
+
+model Relationship {
+  id               Int       @id @default(autoincrement())
+  fromPersonId     Int
+  toPersonId       Int
+  relationshipType String
+  strength         String?
+  validFrom        DateTime
+  validTo          DateTime?
+
+  fromPerson People @relation("RelationshipsFrom", fields: [fromPersonId], references: [id])
+  toPerson   People @relation("RelationshipsTo", fields: [toPersonId], references: [id])
+}
